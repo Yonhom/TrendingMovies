@@ -59,13 +59,6 @@ public class MainFragment extends Fragment {
         setHasOptionsMenu(true);
     }
 
-    @Override
-    public void onStart() {
-        super.onStart();
-        updateFragment();
-    }
-
-
     private void updateFragment() {
         new MyAsyncTask().execute(TRENDING_MOVIE_REQUEST_URL);
     }
@@ -73,6 +66,8 @@ public class MainFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        updateFragment();
 
     }
 

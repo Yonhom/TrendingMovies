@@ -1,13 +1,64 @@
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context="com.xuyonghong.trendingmovies.fragment.DetailFragment">
 
-    <!-- TODO: Update blank fragment layout -->
-    <TextView
+    <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:text="@string/hello_blank_fragment" />
+        android:layout_height="match_parent">
 
-</FrameLayout>
+        <TextView
+            android:text="Movie Title PlaceHolder"
+            android:layout_width="match_parent"
+            android:layout_height="90dp"
+            android:id="@+id/movie_title"
+            android:gravity="center_vertical"
+            android:paddingLeft="25dp"
+            android:textSize="32sp"
+            android:background="@color/colorAccent"/>
+
+        <ImageView
+            android:id="@+id/movie_poster2"
+            android:layout_width="90dp"
+            android:layout_height="160dp"
+            android:layout_below="@+id/movie_title"
+            android:layout_marginTop="10dp"
+            android:layout_marginLeft="10dp"/>
+
+        <TextView
+            android:id="@+id/debut_time"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Debut Time Placeholder"
+            android:layout_below="@id/movie_title"
+            android:layout_toRightOf="@id/movie_poster2"
+            android:layout_marginTop="10dp"
+            android:layout_marginLeft="10dp"/>
+
+        <TextView
+            android:id="@+id/movie_rating"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Movie Rating"
+            android:layout_below="@id/debut_time"
+            android:layout_toRightOf="@id/movie_poster2"
+            android:layout_marginTop="10dp"
+            android:layout_marginLeft="10dp"
+            />
+
+        <TextView
+            android:id="@+id/movie_intro"
+            android:text="Movie Intro Placeholder"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/movie_poster2"
+            android:layout_marginTop="10dp"
+            android:paddingLeft="10dp"
+            android:paddingRight="10dp"
+            />
+
+    </RelativeLayout>
+
+</ScrollView>
+

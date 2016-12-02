@@ -5,11 +5,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
-import android.widget.Toast;
 
-import com.squareup.picasso.Callback;
-import com.squareup.picasso.Picasso;
 import com.xuyonghong.trendingmovies.bean.Movie;
+import com.xuyonghong.trendingmovies.util.MyUtils;
 
 import java.util.List;
 
@@ -48,20 +46,9 @@ public class ImageAdapter extends BaseAdapter {
         ImageView imageView = new ImageView(context);
         imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
 
+        // populate the imageview with image url
+        MyUtils.populateImageViewWithUrl(context, imageView, data.get(position).getPoster_path());
 
-        Picasso.with(context)
-                .load(data.get(position).getPoster_path())
-                .into(imageView, new Callback() {
-            @Override
-            public void onSuccess() {
-//                Toast.makeText(context, "Image Loadingng Success", Toast.LENGTH_SHORT).show();
-            }
-
-            @Override
-            public void onError() {
-                Toast.makeText(context, "Image Loading Fail", Toast.LENGTH_SHORT).show();
-            }
-        });
         return imageView;
     }
 }
