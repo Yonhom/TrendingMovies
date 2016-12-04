@@ -4,6 +4,7 @@ import android.content.Context;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.GridView;
 import android.widget.ImageView;
 
 import com.xuyonghong.trendingmovies.bean.Movie;
@@ -43,8 +44,27 @@ public class ImageAdapter extends BaseAdapter {
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         // return a imageview for the poster
-        ImageView imageView = new ImageView(context);
-        imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
+        ImageView imageView;
+        if (convertView == null) {
+            imageView = new ImageView(context);
+
+            imageView.setLayoutParams(
+                    new GridView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 600));
+
+//            if (((Activity)context).getRequestedOrientation()
+//                    == ActivityInfo.SCREEN_ORIENTATION_PORTRAIT) {
+//                  imageView.setLayoutParams(
+//            new GridView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 600));
+//            } else {
+//                imageView.setLayoutParams(
+//                        new GridView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 900));
+//            }
+
+
+            imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
+        } else {
+            imageView = (ImageView) convertView;
+        }
 
         // populate the imageview with image url
         MyUtils.populateImageViewWithUrl(context, imageView, data.get(position).getPoster_path());

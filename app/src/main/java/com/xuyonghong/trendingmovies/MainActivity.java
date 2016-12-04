@@ -2,9 +2,7 @@ package com.xuyonghong.trendingmovies;
 
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.Menu;
-import android.view.MenuItem;
 
 import com.xuyonghong.trendingmovies.fragment.MainFragment;
 
@@ -31,9 +29,5 @@ public class MainActivity extends AppCompatActivity { // AppCompatActivity: add 
         return super.onCreateOptionsMenu(menu);
     }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        Log.d(DEBUG_TAG, item.toString());
-        return super.onOptionsItemSelected(item);
-    }
+
 }

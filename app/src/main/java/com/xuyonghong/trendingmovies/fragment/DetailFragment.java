@@ -45,8 +45,8 @@ public class DetailFragment extends Fragment {
         TextView movieIntro = (TextView) view.findViewById(R.id.movie_intro);
 
         movieTitle.setText(movieItem.getTitle());
-        MyUtils.populateImageViewWithUrl(getActivity(), movie_poster, movieItem.getBackdrop_path());
-        debutTime.setText(movieItem.getRelease_date());
+        MyUtils.populateImageViewWithUrl(getActivity(), movie_poster, movieItem.getPoster_path());
+        debutTime.setText(MyUtils.getYearInDateString(movieItem.getRelease_date()));
         movieRating.setText(movieItem.getVote_average());
         movieIntro.setText(movieItem.getOverview());
 

@@ -1,0 +1,12 @@
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <ListPreference
+        android:key="pref_movie_ranking_order"
+        android:title="Movie Ranking Order"
+        android:dialogTitle="Select Movie Ranking Order"
+        android:entries="@array/pref_movie_ranking_type"
+        android:entryValues="@array/pref_movie_ranking_type_value"
+        android:defaultValue="@string/pref_movie_rankinf_type_default" />
+
+</PreferenceScreen>

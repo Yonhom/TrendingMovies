@@ -2,10 +2,13 @@ package com.xuyonghong.trendingmovies.fragment;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.util.Log;
@@ -23,6 +26,7 @@ import com.xuyonghong.trendingmovies.DetailActivity;
 import com.xuyonghong.trendingmovies.R;
 import com.xuyonghong.trendingmovies.adapter.ImageAdapter;
 import com.xuyonghong.trendingmovies.bean.Movie;
+import com.xuyonghong.trendingmovies.settings.SettingsActivity;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -35,6 +39,7 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 
@@ -45,30 +50,75 @@ public class MainFragment extends Fragment {
 
     private static final String DEBUG_TAG = MainFragment.class.getSimpleName();
 
-    private static final String TRENDING_MOVIE_REQUEST_URL =
-            "https://api.themoviedb.org/3/movie/popular?api_key=abc9d273fe2afffe7d8b56710a96ae15";
-    private static final String TOP_RATED_MOVIE_REQUEST_URL =
-            "https://api.themoviedb.org/3/movie/top_rated?api_key=abc9d273fe2afffe7d8b56710a96ae15";
-
     private List<Movie> movieArray = null;
 
     private GridView movieGrid; // for displaying movie
 
+    private Date last_update_time; // the lastest update time
+
+    private static final int UPDATE_INTERVAL = 30 * 60 * 1000; // 30mins
+
+    private SharedPreferences dsp;
+
+    private String lastRankingOrder;
+
+
     public MainFragment() {
         // Required empty public constructor
         setHasOptionsMenu(true);
+
+    }
+
+    private boolean updateFragmentOrNot() {
+        String newRankingOrder =
+                dsp.getString(getString(R.string.movie_ranking_type_key),"popular");
+        if (!newRankingOrder.equals(lastRankingOrder)) {
+            lastRankingOrder = newRankingOrder;
+            return true;
+        }
+
+        // we only update the data every 30 mins
+        Date newUpdateTime = new Date();
+        if ((newUpdateTime.getTime() - last_update_time.getTime()) > UPDATE_INTERVAL) {
+            last_update_time = newUpdateTime;
+            return true;
+        }
+
+        return false;
     }
 
     private void updateFragment() {
-        new MyAsyncTask().execute(TRENDING_MOVIE_REQUEST_URL);
+
+        last_update_time = new Date();
+
+        //
+        dsp = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        lastRankingOrder =
+                dsp.getString(getString(R.string.movie_ranking_type_key), "popular");
+
+        String baseUrlStr = "https://api.themoviedb.org/3/movie/" + lastRankingOrder + "?";
+
+        Uri uri = Uri.parse(baseUrlStr).buildUpon()
+                .appendQueryParameter("api_key", "abc9d273fe2afffe7d8b56710a96ae15")
+                .build();
+        String requestUrl = uri.toString();
+        Log.d(DEBUG_TAG, requestUrl);
+        new MyAsyncTask().execute(requestUrl);
     }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         updateFragment();
 
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        if (updateFragmentOrNot()) {
+            updateFragment();
+        }
     }
 
     private class MyAsyncTask extends AsyncTask<String, Void, String> {
@@ -76,7 +126,8 @@ public class MainFragment extends Fragment {
         @Override
         protected String doInBackground(String... params) {
 
-            ConnectivityManager cManager = (ConnectivityManager) getActivity().getSystemService(Context.CONNECTIVITY_SERVICE);
+            ConnectivityManager cManager = (ConnectivityManager) getActivity()
+                    .getSystemService(Context.CONNECTIVITY_SERVICE);
             NetworkInfo activeNetworkInfo = cManager.getActiveNetworkInfo();
 
             if (activeNetworkInfo != null && activeNetworkInfo.isConnected()) {
@@ -221,16 +272,24 @@ public class MainFragment extends Fragment {
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        inflater.inflate(R.menu.menu_fragment_main, menu);
-
-        super.onCreateOptionsMenu(menu, inflater);
+        if (menu.findItem(R.id.action_refresh) == null) {
+            inflater.inflate(R.menu.menu_fragment_main, menu);
+        }
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == R.id.action_refresh) {
-            updateFragment();
+        switch (item.getItemId()) {
+            case R.id.action_refresh:
+                updateFragment();
+                break;
+            case R.id.action_settings:
+
+//                startActivityForResult(new Intent(getActivity(), SettingsActivity.class), 200);
+                startActivity(new Intent(getActivity(), SettingsActivity.class));
+                break;
         }
-        return super.onOptionsItemSelected(item);
+        return true;
+//!        return super.onOptionsItemSelected(item);    // this will end up with the SettingsActivity opened twice!
     }
 }

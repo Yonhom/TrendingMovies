@@ -50,7 +50,7 @@ public class Movie implements Serializable {
     }
 
     public String getVote_average() {
-        return vote_average;
+        return vote_average + "/10";
     }
 
     public void setVote_average(String vote_average) {
