@@ -1,6 +1,8 @@
 package com.xuyonghong.trendingmovies.adapter;
 
+import android.app.Activity;
 import android.content.Context;
+import android.view.Surface;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
@@ -48,18 +50,16 @@ public class ImageAdapter extends BaseAdapter {
         if (convertView == null) {
             imageView = new ImageView(context);
 
-            imageView.setLayoutParams(
-                    new GridView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 600));
-
-//            if (((Activity)context).getRequestedOrientation()
-//                    == ActivityInfo.SCREEN_ORIENTATION_PORTRAIT) {
-//                  imageView.setLayoutParams(
-//            new GridView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 600));
-//            } else {
-//                imageView.setLayoutParams(
-//                        new GridView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 900));
-//            }
-
+//            imageView.setLayoutParams(
+//                    new GridView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 600));
+            int screenRotation = ((Activity)context).getWindowManager().getDefaultDisplay().getRotation();
+            if (screenRotation == Surface.ROTATION_0 || screenRotation == Surface.ROTATION_180) {
+                  imageView.setLayoutParams(
+            new GridView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 600));
+            } else {
+                imageView.setLayoutParams(
+                        new GridView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 900));
+            }
 
             imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
         } else {

@@ -69,6 +69,13 @@ public class MainFragment extends Fragment {
 
     }
 
+    /**
+     * if the user has pressed Refresh button, update
+     * if user had changed the movie ranking preference, update
+     * if the update interval is 30 mins or bigger, update
+     * else dont update
+     * @return
+     */
     private boolean updateFragmentOrNot() {
         String newRankingOrder =
                 dsp.getString(getString(R.string.movie_ranking_type_key),"popular");
@@ -99,6 +106,7 @@ public class MainFragment extends Fragment {
         String baseUrlStr = "https://api.themoviedb.org/3/movie/" + lastRankingOrder + "?";
 
         Uri uri = Uri.parse(baseUrlStr).buildUpon()
+                .appendQueryParameter("language", "zh")
                 .appendQueryParameter("api_key", "abc9d273fe2afffe7d8b56710a96ae15")
                 .build();
         String requestUrl = uri.toString();
@@ -122,13 +130,15 @@ public class MainFragment extends Fragment {
     }
 
     private class MyAsyncTask extends AsyncTask<String, Void, String> {
+        ConnectivityManager cManager;
+        NetworkInfo activeNetworkInfo;
 
         @Override
         protected String doInBackground(String... params) {
 
-            ConnectivityManager cManager = (ConnectivityManager) getActivity()
+            cManager = (ConnectivityManager) getActivity()
                     .getSystemService(Context.CONNECTIVITY_SERVICE);
-            NetworkInfo activeNetworkInfo = cManager.getActiveNetworkInfo();
+            activeNetworkInfo = cManager.getActiveNetworkInfo();
 
             if (activeNetworkInfo != null && activeNetworkInfo.isConnected()) {
                 // internet connected, fetch data
@@ -142,11 +152,17 @@ public class MainFragment extends Fragment {
 
             } else {
                 // remind the user that there is internet connectivity problem
-                Toast.makeText(
-                        getActivity(),
-                        "Mayday, mayday! The internet is down, now we are all in peril!!",
-                        Toast.LENGTH_SHORT)
-                        .show();;
+                getActivity().runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(
+                                getActivity(),
+                                "Mayday, mayday! The internet is down, now we are all in peril!!",
+                                Toast.LENGTH_SHORT)
+                                .show();
+                    }
+                });
+
             }
 
 
@@ -156,10 +172,13 @@ public class MainFragment extends Fragment {
         @Override
         protected void onPostExecute(String s) {
 
-            if (movieArray.size() > 0) {
-                ImageAdapter adapter = new ImageAdapter(movieArray, getActivity());
-                movieGrid.setAdapter(adapter);
+            if (activeNetworkInfo != null && activeNetworkInfo.isConnected()) {
+                if (movieArray.size() > 0) {
+                    ImageAdapter adapter = new ImageAdapter(movieArray, getActivity());
+                    movieGrid.setAdapter(adapter);
+                }
             }
+
         }
 
         private List<Movie> movieJsonToArray(String jsonStr) {

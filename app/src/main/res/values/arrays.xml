@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string-array name="pref_movie_ranking_type">
-        <item>Ranked By Popularity</item>
-        <item>Ranked By Rating</item>
+        <item>按最受欢迎排序</item>
+        <item>按评分最高排序</item>
     </string-array>
 
     <string-array name="pref_movie_ranking_type_value">

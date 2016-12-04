@@ -13,8 +13,11 @@ public class DetailActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_detail);
 
-        getSupportFragmentManager().beginTransaction()
-                .add(R.id.activity_detail, new DetailFragment()).commit();
+        if (savedInstanceState == null) {
+            getSupportFragmentManager().beginTransaction()
+                    .add(R.id.activity_detail, new DetailFragment()).commit();
+        }
+
     }
 
     @Override

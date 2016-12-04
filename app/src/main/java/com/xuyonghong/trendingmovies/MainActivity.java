@@ -10,14 +10,18 @@ import com.xuyonghong.trendingmovies.fragment.MainFragment;
 public class MainActivity extends AppCompatActivity { // AppCompatActivity: add the action bar functionality
     private static final String DEBUG_TAG = MainActivity.class.getSimpleName();
 
+    private static final String MAIN_FRAGMENT_TAG = "MAIN_FRAGMENT";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        // add the main fragment
-        getSupportFragmentManager().beginTransaction()
-                .add(R.id.activity_main, new MainFragment()).commit();
+        // add the fragment only once
+        if (savedInstanceState == null) {
+            // add the main fragment
+            getSupportFragmentManager().beginTransaction()
+                    .add(R.id.activity_main, new MainFragment(), MAIN_FRAGMENT_TAG).commit();
+        }
 
     }
 
