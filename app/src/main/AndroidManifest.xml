@@ -22,7 +22,12 @@
 
         <activity
             android:name=".DetailActivity"
-            android:parentActivityName=".MainActivity"/>
+            android:parentActivityName=".MainActivity">
+            <!-- parent activity meta data to support sdk14 and lower -->
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".MainActivity" />
+        </activity>
 
         <activity
             android:name=".settings.SettingsActivity"
@@ -30,7 +35,7 @@
             android:parentActivityName=".MainActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.xuyonghong.trendingmovies.MainActivity" />
+                android:value=".MainActivity" />
         </activity>
     </application>
 
