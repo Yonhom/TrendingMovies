@@ -169,12 +169,9 @@ public class MainFragment extends Fragment implements LoaderManager.LoaderCallba
                 loader.forceLoad();
                 break;
             case R.id.action_settings:
-
-//                startActivityForResult(new Intent(getActivity(), SettingsActivity.class), 200);
                 startActivity(new Intent(getActivity(), SettingsActivity.class));
                 break;
         }
         return true;
-//!        return super.onOptionsItemSelected(item);    // this will end up with the SettingsActivity opened twice!
     }
 }

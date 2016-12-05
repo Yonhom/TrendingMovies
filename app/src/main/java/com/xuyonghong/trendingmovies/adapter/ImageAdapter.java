@@ -50,8 +50,6 @@ public class ImageAdapter extends BaseAdapter {
         if (convertView == null) {
             imageView = new ImageView(context);
 
-//            imageView.setLayoutParams(
-//                    new GridView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 600));
             int screenRotation = ((Activity)context).getWindowManager().getDefaultDisplay().getRotation();
             if (screenRotation == Surface.ROTATION_0 || screenRotation == Surface.ROTATION_180) {
                   imageView.setLayoutParams(
