@@ -6,15 +6,16 @@
 
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="wrap_content">
 
         <TextView
-            android:text="Movie Title PlaceHolder"
+            android:text="@string/movie_title_placeholder"
             android:layout_width="match_parent"
-            android:layout_height="90dp"
+            android:layout_height="80dp"
             android:id="@+id/movie_title"
             android:gravity="center_vertical"
             android:paddingLeft="25dp"
+            android:paddingRight="25dp"
             android:textSize="32sp"
             android:textColor="@android:color/white"
             android:background="@color/color_detail_title"/>
@@ -33,7 +34,7 @@
             android:id="@+id/debut_time"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Debut Time Placeholder"
+            android:text="@string/debut_time_placeholder"
             android:layout_below="@id/movie_title"
             android:layout_toRightOf="@id/movie_poster2"
             android:layout_marginTop="30dp"
@@ -44,24 +45,31 @@
             android:id="@+id/movie_rating"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Movie Rating"
+            android:text="@string/movie_rating"
             android:layout_below="@id/debut_time"
             android:layout_toRightOf="@id/movie_poster2"
             android:layout_marginTop="10dp"
             android:layout_marginLeft="20dp"
             />
 
-        <TextView
-            android:id="@+id/movie_intro"
-            android:text="Movie Intro Placeholder"
+        <android.support.v4.widget.NestedScrollView
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/movie_poster2"
+            android:layout_height="150dp"
             android:layout_marginTop="10dp"
-            android:paddingLeft="10dp"
-            android:paddingRight="10dp"
-            android:textSize="18sp"
-            />
+            android:layout_marginBottom="10dp"
+            android:layout_below="@id/movie_poster2">
+            <TextView
+                android:id="@+id/movie_intro"
+                android:text="@string/movie_intro_placeholder"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:paddingLeft="10dp"
+                android:paddingRight="10dp"
+                android:textSize="18sp"
+                />
+        </android.support.v4.widget.NestedScrollView>
+
+
 
     </RelativeLayout>
 

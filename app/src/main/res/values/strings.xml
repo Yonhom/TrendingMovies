@@ -83,4 +83,8 @@
     <string name="pref_movie_rankinf_type_default">popular</string>
     <string name="movie_ranking_type_key">pref_movie_ranking_order</string>
     <string name="action_movie_ranking_order">电影排序</string>
+    <string name="movie_title_placeholder">Movie Title PlaceHolder</string>
+    <string name="debut_time_placeholder">Debut Time Placeholder</string>
+    <string name="movie_rating">Movie Rating</string>
+    <string name="movie_intro_placeholder">Movie Intro Placeholder</string>
 </resources>
