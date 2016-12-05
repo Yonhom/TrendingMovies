@@ -20,7 +20,7 @@ import java.util.List;
  */
 
 public class ImageAdapter extends BaseAdapter {
-    private List<Movie> data = null;
+    private List<Movie> data;
     private Context context;
 
     public ImageAdapter(List<Movie> movieArray, Context context) {

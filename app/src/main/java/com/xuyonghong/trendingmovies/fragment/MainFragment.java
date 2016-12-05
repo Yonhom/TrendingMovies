@@ -1,17 +1,13 @@
 package com.xuyonghong.trendingmovies.fragment;
 
-import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
-import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.util.Log;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.Loader;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -20,24 +16,14 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.GridView;
-import android.widget.Toast;
 
 import com.xuyonghong.trendingmovies.DetailActivity;
 import com.xuyonghong.trendingmovies.R;
 import com.xuyonghong.trendingmovies.adapter.ImageAdapter;
 import com.xuyonghong.trendingmovies.bean.Movie;
+import com.xuyonghong.trendingmovies.loader.MyAsyncTaskLoader;
 import com.xuyonghong.trendingmovies.settings.SettingsActivity;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -46,22 +32,23 @@ import java.util.List;
 /**
  * this fragment is for the movie list
  */
-public class MainFragment extends Fragment {
+public class MainFragment extends Fragment implements LoaderManager.LoaderCallbacks<List> {
 
     private static final String DEBUG_TAG = MainFragment.class.getSimpleName();
 
-    private List<Movie> movieArray = null;
+    private List<Movie> movieArray = new ArrayList<>();
 
     private GridView movieGrid; // for displaying movie
 
-    private Date last_update_time; // the lastest update time
+    private Date last_update_time = new Date(); // the lastest update time
 
     private static final int UPDATE_INTERVAL = 30 * 60 * 1000; // 30mins
+    
+    private String lastRankingOrder = "popular";
 
-    private SharedPreferences dsp;
+    private ImageAdapter adapter;
 
-    private String lastRankingOrder;
-
+    private Loader<List> loader;
 
     public MainFragment() {
         // Required empty public constructor
@@ -77,6 +64,7 @@ public class MainFragment extends Fragment {
      * @return
      */
     private boolean updateFragmentOrNot() {
+        SharedPreferences dsp = PreferenceManager.getDefaultSharedPreferences(getActivity());
         String newRankingOrder =
                 dsp.getString(getString(R.string.movie_ranking_type_key),"popular");
         if (!newRankingOrder.equals(lastRankingOrder)) {
@@ -94,30 +82,44 @@ public class MainFragment extends Fragment {
         return false;
     }
 
-    private void updateFragment() {
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
 
-        last_update_time = new Date();
-
-        //
-        dsp = PreferenceManager.getDefaultSharedPreferences(getActivity());
-        lastRankingOrder =
-                dsp.getString(getString(R.string.movie_ranking_type_key), "popular");
-
-        String baseUrlStr = "https://api.themoviedb.org/3/movie/" + lastRankingOrder + "?";
-
-        Uri uri = Uri.parse(baseUrlStr).buildUpon()
-                .appendQueryParameter("language", "zh")
-                .appendQueryParameter("api_key", "abc9d273fe2afffe7d8b56710a96ae15")
-                .build();
-        String requestUrl = uri.toString();
-        Log.d(DEBUG_TAG, requestUrl);
-        new MyAsyncTask().execute(requestUrl);
+        loader = getLoaderManager().initLoader(0, null, this);
     }
+
+
+    /// loader related methods, those methods will be called as the loader's stage changes
+    @Override
+    public Loader onCreateLoader(int id, Bundle args) {
+        // create a loader here, if there isn't a existing one with the id
+
+        return new MyAsyncTaskLoader(getActivity());
+
+    }
+
+    @Override
+    public void onLoadFinished(Loader<List> loader, List data) {
+        movieArray.clear();
+        movieArray.addAll(data); // data: movie response list array
+        if (data.size() > 0) {
+            adapter.notifyDataSetChanged(); // update array list
+        }
+
+    }
+
+    @Override
+    public void onLoaderReset(Loader loader) {
+
+    }
+    /// load related methods
+
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        updateFragment();
+//        updateFragment();
 
     }
 
@@ -125,147 +127,7 @@ public class MainFragment extends Fragment {
     public void onStart() {
         super.onStart();
         if (updateFragmentOrNot()) {
-            updateFragment();
-        }
-    }
-
-    private class MyAsyncTask extends AsyncTask<String, Void, String> {
-        ConnectivityManager cManager;
-        NetworkInfo activeNetworkInfo;
-
-        @Override
-        protected String doInBackground(String... params) {
-
-            cManager = (ConnectivityManager) getActivity()
-                    .getSystemService(Context.CONNECTIVITY_SERVICE);
-            activeNetworkInfo = cManager.getActiveNetworkInfo();
-
-            if (activeNetworkInfo != null && activeNetworkInfo.isConnected()) {
-                // internet connected, fetch data
-                String responseStr = getResponseFromReqUrl(params[0]);
-
-                if (responseStr != null) {
-                    movieArray = movieJsonToArray(responseStr);
-                }
-
-
-
-            } else {
-                // remind the user that there is internet connectivity problem
-                getActivity().runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        Toast.makeText(
-                                getActivity(),
-                                "Mayday, mayday! The internet is down, now we are all in peril!!",
-                                Toast.LENGTH_SHORT)
-                                .show();
-                    }
-                });
-
-            }
-
-
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(String s) {
-
-            if (activeNetworkInfo != null && activeNetworkInfo.isConnected()) {
-                if (movieArray.size() > 0) {
-                    ImageAdapter adapter = new ImageAdapter(movieArray, getActivity());
-                    movieGrid.setAdapter(adapter);
-                }
-            }
-
-        }
-
-        private List<Movie> movieJsonToArray(String jsonStr) {
-            ArrayList<Movie> movieArray = new ArrayList<>();
-            try {
-                JSONObject jsonObj = new JSONObject(jsonStr);
-                JSONArray results = jsonObj.getJSONArray("results");
-                for(int i = 0; i < results.length(); i++) {
-                    JSONObject jsonObject = results.getJSONObject(i); // the individual json object
-
-                    Movie movie = new Movie();
-                    movie.setPoster_path(jsonObject.getString("poster_path"));
-                    movie.setTitle(jsonObject.getString("title"));
-                    movie.setBackdrop_path(jsonObject.getString("backdrop_path"));
-                    movie.setRelease_date(jsonObject.getString("release_date"));
-                    movie.setVote_average(jsonObject.getString("vote_average"));
-                    movie.setOverview(jsonObject.getString("overview"));
-
-                    movieArray.add(movie);
-                }
-
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-            Log.d(DEBUG_TAG, movieArray.toString());
-            return movieArray;
-        }
-
-
-        @Nullable
-        private String getResponseFromReqUrl(String urlStr) {
-            InputStream is = null;
-            HttpURLConnection conn = null;
-            BufferedReader reader = null;
-
-            try{
-                URL url = new URL(urlStr);
-                conn = (HttpURLConnection) url.openConnection();
-                conn.setReadTimeout(10000);
-                conn.setConnectTimeout(15000);
-                conn.setRequestMethod("GET");
-                conn.setDoInput(true);  // default is true
-                conn.connect();
-
-                int responseCode = conn.getResponseCode();
-                if (responseCode != 200) {
-                    Toast.makeText(getActivity(),
-                            "Response code is" + responseCode + ", not 200",
-                            Toast.LENGTH_SHORT).show();
-                    return null;
-                }
-
-                is = conn.getInputStream();
-                if (is == null) {
-                    return null;
-                }
-
-                reader = new BufferedReader(new InputStreamReader(is));
-                StringBuffer buffer = new StringBuffer();
-                String line;
-
-                while((line = reader.readLine()) != null) {
-                    buffer.append(line + "\n");
-                }
-
-                if(buffer.length() == 0){
-                    return null;
-                }
-                String responseStr = buffer.toString();
-                Log.d(DEBUG_TAG, responseStr);
-
-                return responseStr;
-            }catch(IOException e){
-                return null;
-            } finally {
-                if (conn != null) {
-                    conn.disconnect();
-                }
-                if (reader != null){
-                    try {
-                        reader.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-
+            loader.forceLoad();
         }
     }
 
@@ -276,6 +138,10 @@ public class MainFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_main, container, false);
 
         movieGrid = (GridView)view.findViewById(R.id.movie_grid);
+
+        adapter = new ImageAdapter(movieArray, getActivity());
+
+        movieGrid.setAdapter(adapter);
 
         movieGrid.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -300,7 +166,7 @@ public class MainFragment extends Fragment {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_refresh:
-                updateFragment();
+                loader.forceLoad();
                 break;
             case R.id.action_settings:
 
