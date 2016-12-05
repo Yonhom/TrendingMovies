@@ -17,7 +17,7 @@
             android:paddingLeft="@dimen/padding_medium"
             android:paddingRight="@dimen/padding_medium"
             android:textSize="@dimen/movie_title_text_size"
-            android:textColor="@android:color/white"
+            android:textColor="@color/movie_title_color"
             android:background="@color/color_detail_title"/>
 
         <ImageView

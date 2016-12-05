@@ -5,4 +5,5 @@
     <color name="colorAccent">#FF4081</color>
     <color name="color_detail_title">#01bcab</color>
     <color name="color_action_bar">#212121</color>
+    <color name="movie_title_color">@android:color/white</color>
 </resources>
