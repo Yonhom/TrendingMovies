@@ -9,7 +9,7 @@ import android.widget.BaseAdapter;
 import android.widget.GridView;
 import android.widget.ImageView;
 
-import com.xuyonghong.trendingmovies.bean.Movie;
+import com.xuyonghong.trendingmovies.model.Movie;
 import com.xuyonghong.trendingmovies.util.MyUtils;
 
 import java.util.List;

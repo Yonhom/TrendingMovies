@@ -13,7 +13,7 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.xuyonghong.trendingmovies.R;
-import com.xuyonghong.trendingmovies.bean.Movie;
+import com.xuyonghong.trendingmovies.model.Movie;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -173,7 +173,6 @@ public class MyAsyncTaskLoader extends AsyncTaskLoader<List> {
                 }
             }
         }
-
     }
 
     /**

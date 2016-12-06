@@ -1,4 +1,4 @@
-package com.xuyonghong.trendingmovies.bean;
+package com.xuyonghong.trendingmovies.model;
 
 import java.io.Serializable;
 
@@ -64,4 +64,5 @@ public class Movie implements Serializable {
     public void setOverview(String overview) {
         this.overview = overview;
     }
+
 }

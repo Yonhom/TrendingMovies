@@ -20,7 +20,7 @@ import android.widget.GridView;
 import com.xuyonghong.trendingmovies.DetailActivity;
 import com.xuyonghong.trendingmovies.R;
 import com.xuyonghong.trendingmovies.adapter.ImageAdapter;
-import com.xuyonghong.trendingmovies.bean.Movie;
+import com.xuyonghong.trendingmovies.model.Movie;
 import com.xuyonghong.trendingmovies.loader.MyAsyncTaskLoader;
 import com.xuyonghong.trendingmovies.settings.SettingsActivity;
 
