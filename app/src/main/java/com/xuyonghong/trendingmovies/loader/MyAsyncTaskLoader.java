@@ -45,7 +45,7 @@ public class MyAsyncTaskLoader extends AsyncTaskLoader<List> {
         this.context = context;
     }
 
-    //when initLoader of LoaderManager id called, this method will be called first
+    // when initLoader of LoaderManager is called, this method will be called first
     @Override
     protected void onStartLoading() {
         forceLoad();
@@ -53,7 +53,7 @@ public class MyAsyncTaskLoader extends AsyncTaskLoader<List> {
 
     @Override
     public List loadInBackground() {
-        List<Movie> movieList = null;
+        List<Movie> movieList = new ArrayList<>();
         cManager = (ConnectivityManager) context
                 .getSystemService(Context.CONNECTIVITY_SERVICE);
         activeNetworkInfo = cManager.getActiveNetworkInfo();
@@ -63,7 +63,7 @@ public class MyAsyncTaskLoader extends AsyncTaskLoader<List> {
             String responseStr = getResponseFromReqUrl(getRequestUrl());
 
             if (responseStr != null) {
-                movieList = movieJsonToArray(responseStr);
+                movieList.addAll(movieJsonToArray(responseStr));
             }
 
 
@@ -86,6 +86,18 @@ public class MyAsyncTaskLoader extends AsyncTaskLoader<List> {
         return movieList;
     }
 
+    /**
+     * Call Hierarchy:
+     * MyAsyncTaskLoader.deliverResult(List)
+     * --->
+     * Loader.deliverResult(D)
+     * --->
+     * LoaderManagerImpl.onLoadComplete(Loader<Object>, Object)
+     * --->
+     * LoaderManagerImpl.callOnLoadFinished(Loader<Object>, Object)
+     * --->
+     * MainFragment.onLoadFinished(Loader<List>, List)
+     */
     @Override
     public void deliverResult(List data) {
         super.deliverResult(data);

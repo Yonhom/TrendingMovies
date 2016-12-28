@@ -1,5 +1,6 @@
 package com.xuyonghong.trendingmovies.fragment;
 
+import android.content.ContentValues;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -20,13 +21,21 @@ import android.widget.GridView;
 import com.xuyonghong.trendingmovies.DetailActivity;
 import com.xuyonghong.trendingmovies.R;
 import com.xuyonghong.trendingmovies.adapter.ImageAdapter;
-import com.xuyonghong.trendingmovies.model.Movie;
 import com.xuyonghong.trendingmovies.loader.MyAsyncTaskLoader;
+import com.xuyonghong.trendingmovies.model.Movie;
+import com.xuyonghong.trendingmovies.provider.MovieContracts;
 import com.xuyonghong.trendingmovies.settings.SettingsActivity;
 
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+
+import static com.xuyonghong.trendingmovies.provider.MovieContracts.MovieTable.BACKDROP_PATH;
+import static com.xuyonghong.trendingmovies.provider.MovieContracts.MovieTable.OVERVIEW;
+import static com.xuyonghong.trendingmovies.provider.MovieContracts.MovieTable.POSTER_PATH;
+import static com.xuyonghong.trendingmovies.provider.MovieContracts.MovieTable.RELEASE_DATE;
+import static com.xuyonghong.trendingmovies.provider.MovieContracts.MovieTable.TITLE;
+import static com.xuyonghong.trendingmovies.provider.MovieContracts.MovieTable.VOTE_AVERAGE;
 
 
 /**
@@ -36,8 +45,6 @@ public class MainFragment extends Fragment implements LoaderManager.LoaderCallba
 
     private static final String DEBUG_TAG = MainFragment.class.getSimpleName();
 
-    private List<Movie> movieArray = new ArrayList<>();
-
     private GridView movieGrid; // for displaying movie
 
     private Date last_update_time = new Date(); // the lastest update time
@@ -46,9 +53,13 @@ public class MainFragment extends Fragment implements LoaderManager.LoaderCallba
     
     private String lastRankingOrder = "popular";
 
-    private ImageAdapter adapter;
+    private Loader fetchOnlineMovieListLoader;
 
-    private Loader<List> loader;
+    private static final int FETCH_ONLINE_MOVIE_LIST_LOADER = 0;
+
+    private List<Movie> movieList = new ArrayList<>();
+
+    private ImageAdapter adapter;
 
     public MainFragment() {
         // Required empty public constructor
@@ -86,7 +97,8 @@ public class MainFragment extends Fragment implements LoaderManager.LoaderCallba
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
-        loader = getLoaderManager().initLoader(0, null, this);
+        // init the MyAsyncTaskLoader
+        fetchOnlineMovieListLoader = getLoaderManager().initLoader(0, null, this);
     }
 
 
@@ -94,19 +106,32 @@ public class MainFragment extends Fragment implements LoaderManager.LoaderCallba
     @Override
     public Loader onCreateLoader(int id, Bundle args) {
         // create a loader here, if there isn't a existing one with the id
-
-        return new MyAsyncTaskLoader(getActivity());
-
+        return new MyAsyncTaskLoader(getContext());
     }
 
     @Override
     public void onLoadFinished(Loader<List> loader, List data) {
-        movieArray.clear();
-        movieArray.addAll(data); // data: movie response list array
-        if (data.size() > 0) {
-            adapter.notifyDataSetChanged(); // update array list
+        if (loader.getId() == FETCH_ONLINE_MOVIE_LIST_LOADER) {
+            movieList.addAll(data);
+            adapter.notifyDataSetChanged();
+            if (movieList.size() > 0) {
+                // add data to movie data base
+                ContentValues[] values = new ContentValues[movieList.size()];
+                for (int i = 0; i < movieList.size(); i++) {
+                    Movie movie = (Movie) movieList.get(i);
+                    ContentValues value = new ContentValues();
+                    value.put(POSTER_PATH, movie.getPoster_path());
+                    value.put(TITLE, movie.getTitle());
+                    value.put(BACKDROP_PATH, movie.getBackdrop_path());
+                    value.put(RELEASE_DATE, movie.getRelease_date());
+                    value.put(VOTE_AVERAGE, movie.getVote_average());
+                    value.put(OVERVIEW, movie.getOverview());
+                    values[i] = value;
+                }
+                getContext().getContentResolver().bulkInsert(
+                        MovieContracts.MovieTable.CONTENT_URI, values);
+            }
         }
-
     }
 
     @Override
@@ -127,7 +152,7 @@ public class MainFragment extends Fragment implements LoaderManager.LoaderCallba
     public void onStart() {
         super.onStart();
         if (updateFragmentOrNot()) {
-            loader.forceLoad();
+            fetchOnlineMovieListLoader.forceLoad();
         }
     }
 
@@ -139,15 +164,16 @@ public class MainFragment extends Fragment implements LoaderManager.LoaderCallba
 
         movieGrid = (GridView)view.findViewById(R.id.movie_grid);
 
-        adapter = new ImageAdapter(movieArray, getActivity());
+        adapter = new ImageAdapter(movieList, getContext());
 
         movieGrid.setAdapter(adapter);
 
         movieGrid.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+            public void onItemClick(
+                    AdapterView<?> parent, View view, int position, long id) {
                 Intent intent = new Intent(getActivity(), DetailActivity.class);
-                intent.putExtra("MOVIE_ITEM", movieArray.get(position));
+                intent.putExtra("MOVIE_ITEM_ID", position);
                 startActivity(intent);
             }
         });
@@ -166,7 +192,7 @@ public class MainFragment extends Fragment implements LoaderManager.LoaderCallba
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_refresh:
-                loader.forceLoad();
+                fetchOnlineMovieListLoader.forceLoad();
                 break;
             case R.id.action_settings:
                 startActivity(new Intent(getActivity(), SettingsActivity.class));

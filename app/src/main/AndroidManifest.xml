@@ -10,8 +10,9 @@
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"
-        android:theme="@style/MyAppTheme">  <!-- android:theme="@style/MyAppTheme" -->
-        <activity android:name=".MainActivity"
+        android:theme="@style/MyAppTheme"> <!-- android:theme="@style/MyAppTheme" -->
+        <activity
+            android:name=".MainActivity"
             android:launchMode="singleTop">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -19,16 +20,15 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
         <activity
             android:name=".DetailActivity"
             android:parentActivityName=".MainActivity">
+
             <!-- parent activity meta data to support sdk14 and lower -->
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".MainActivity" />
         </activity>
-
         <activity
             android:name=".settings.SettingsActivity"
             android:label="@string/title_activity_settings"
@@ -37,6 +37,12 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".MainActivity" />
         </activity>
+
+        <provider
+            android:name=".provider.MovieContentProvider"
+            android:authorities="com.xuyonghong.trendingmovies.provider"
+            android:enabled="true"
+            android:exported="true"></provider>
     </application>
 
 </manifest>

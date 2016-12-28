@@ -13,6 +13,7 @@ public class GridViewMovieItem extends ImageView {
         super(context);
     }
 
+    /// the onMeasure method is called by view's measure(width, height) method
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
@@ -20,6 +21,7 @@ public class GridViewMovieItem extends ImageView {
         // the drawable inside the iamgeview's ratio may be different
         int refactoredWidth = widthMeasureSpec;
         int refactoredHeight = widthMeasureSpec * 3 / 2;
+        // this method is called to set the refactored measurement back to the view
         setMeasuredDimension(refactoredWidth, refactoredHeight);
     }
 }
