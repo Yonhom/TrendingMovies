@@ -1,6 +1,8 @@
 package com.xuyonghong.trendingmovies.view;
 
 import android.content.Context;
+import android.support.annotation.Nullable;
+import android.util.AttributeSet;
 import android.widget.ImageView;
 
 /**
@@ -11,6 +13,10 @@ public class GridViewMovieItem extends ImageView {
 
     public GridViewMovieItem(Context context) {
         super(context);
+    }
+
+    public GridViewMovieItem(Context context, @Nullable AttributeSet attrs) {
+        super(context, attrs);
     }
 
     /// the onMeasure method is called by view's measure(width, height) method

@@ -8,7 +8,7 @@ import android.net.Uri;
 
 public class MovieContracts {
     public static final String DBNAME = "movie_base";
-    public static final int DB_VERSION = 1;
+    public static final int DB_VERSION = 2;
     public static final String AUTHORITY = "com.xuyonghong.trendingmovies.provider";
 
     public static class MovieTable {

@@ -151,9 +151,9 @@ public class MainFragment extends Fragment implements LoaderManager.LoaderCallba
     @Override
     public void onStart() {
         super.onStart();
-        if (updateFragmentOrNot()) {
-            fetchOnlineMovieListLoader.forceLoad();
-        }
+//        if (updateFragmentOrNot()) {
+//            fetchOnlineMovieListLoader.forceLoad();
+//        }
     }
 
     @Override
@@ -165,6 +165,7 @@ public class MainFragment extends Fragment implements LoaderManager.LoaderCallba
         movieGrid = (GridView)view.findViewById(R.id.movie_grid);
 
         adapter = new ImageAdapter(movieList, getContext());
+
 
         movieGrid.setAdapter(adapter);
 
