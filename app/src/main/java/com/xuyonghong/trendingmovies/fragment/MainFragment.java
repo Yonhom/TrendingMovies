@@ -1,8 +1,10 @@
 package com.xuyonghong.trendingmovies.fragment;
 
+import android.content.ContentValues;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
+import android.database.DatabaseUtils;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
@@ -24,10 +26,12 @@ import com.xuyonghong.trendingmovies.DetailActivity;
 import com.xuyonghong.trendingmovies.R;
 import com.xuyonghong.trendingmovies.adapter.MovieItemCursorAdapter;
 import com.xuyonghong.trendingmovies.loader.MyAsyncTaskLoader;
+import com.xuyonghong.trendingmovies.provider.MovieContracts;
 import com.xuyonghong.trendingmovies.settings.SettingsActivity;
 
+import java.util.ArrayList;
 import java.util.Date;
-
+import java.util.List;
 
 /**
  * this fragment is for the movie list
@@ -113,8 +117,17 @@ public class MainFragment extends Fragment implements LoaderManager.LoaderCallba
         if (loader.getId() == FETCH_ONLINE_MOVIE_LIST_LOADER) {
             cursor = data;
             adapter.swapCursor(cursor);
-//            ContentValues cValues = new ContentValues();
-//            getContext().getContentResolver().bulkInsert();
+
+            // insert data to database
+            List<ContentValues> valueList = new ArrayList<>();
+            while (data.moveToNext()) {
+                ContentValues values = new ContentValues();
+                DatabaseUtils.cursorRowToContentValues(data, values);
+                valueList.add(values);
+            }
+            getContext().getContentResolver().bulkInsert(
+                    MovieContracts.MovieTable.CONTENT_URI,
+                    valueList.toArray(new ContentValues[valueList.size()]));
         }
     }
 
