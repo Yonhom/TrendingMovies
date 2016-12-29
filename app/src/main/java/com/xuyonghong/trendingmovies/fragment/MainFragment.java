@@ -1,14 +1,16 @@
 package com.xuyonghong.trendingmovies.fragment;
 
-import android.content.ContentValues;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.database.Cursor;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.Loader;
+import android.support.v4.widget.CursorAdapter;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -20,28 +22,20 @@ import android.widget.GridView;
 
 import com.xuyonghong.trendingmovies.DetailActivity;
 import com.xuyonghong.trendingmovies.R;
-import com.xuyonghong.trendingmovies.adapter.ImageAdapter;
+import com.xuyonghong.trendingmovies.adapter.MovieItemCursorAdapter;
 import com.xuyonghong.trendingmovies.loader.MyAsyncTaskLoader;
-import com.xuyonghong.trendingmovies.model.Movie;
-import com.xuyonghong.trendingmovies.provider.MovieContracts;
 import com.xuyonghong.trendingmovies.settings.SettingsActivity;
 
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
-
-import static com.xuyonghong.trendingmovies.provider.MovieContracts.MovieTable.BACKDROP_PATH;
-import static com.xuyonghong.trendingmovies.provider.MovieContracts.MovieTable.OVERVIEW;
-import static com.xuyonghong.trendingmovies.provider.MovieContracts.MovieTable.POSTER_PATH;
-import static com.xuyonghong.trendingmovies.provider.MovieContracts.MovieTable.RELEASE_DATE;
-import static com.xuyonghong.trendingmovies.provider.MovieContracts.MovieTable.TITLE;
-import static com.xuyonghong.trendingmovies.provider.MovieContracts.MovieTable.VOTE_AVERAGE;
 
 
 /**
  * this fragment is for the movie list
+ *
+ * the main method call order:
+ * constructor --> onCreate --> onCreateView --> onActivityCreated --> onCreateLoader --> onLoadFinished
  */
-public class MainFragment extends Fragment implements LoaderManager.LoaderCallbacks<List> {
+public class MainFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
     private static final String DEBUG_TAG = MainFragment.class.getSimpleName();
 
@@ -57,13 +51,15 @@ public class MainFragment extends Fragment implements LoaderManager.LoaderCallba
 
     private static final int FETCH_ONLINE_MOVIE_LIST_LOADER = 0;
 
-    private List<Movie> movieList = new ArrayList<>();
+    private CursorAdapter adapter;
 
-    private ImageAdapter adapter;
+    private Cursor cursor;
 
     public MainFragment() {
         // Required empty public constructor
         setHasOptionsMenu(true);
+        Log.d(DEBUG_TAG, "MainFragment()");
+
 
     }
 
@@ -96,6 +92,7 @@ public class MainFragment extends Fragment implements LoaderManager.LoaderCallba
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
+        Log.d(DEBUG_TAG, "onActivityCreated");
 
         // init the MyAsyncTaskLoader
         fetchOnlineMovieListLoader = getLoaderManager().initLoader(0, null, this);
@@ -105,32 +102,19 @@ public class MainFragment extends Fragment implements LoaderManager.LoaderCallba
     /// loader related methods, those methods will be called as the loader's stage changes
     @Override
     public Loader onCreateLoader(int id, Bundle args) {
+        Log.d(DEBUG_TAG, "onCreateLoader");
         // create a loader here, if there isn't a existing one with the id
         return new MyAsyncTaskLoader(getContext());
     }
 
     @Override
-    public void onLoadFinished(Loader<List> loader, List data) {
+    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+        Log.d(DEBUG_TAG, "onLoadFinished");
         if (loader.getId() == FETCH_ONLINE_MOVIE_LIST_LOADER) {
-            movieList.addAll(data);
-            adapter.notifyDataSetChanged();
-            if (movieList.size() > 0) {
-                // add data to movie data base
-                ContentValues[] values = new ContentValues[movieList.size()];
-                for (int i = 0; i < movieList.size(); i++) {
-                    Movie movie = (Movie) movieList.get(i);
-                    ContentValues value = new ContentValues();
-                    value.put(POSTER_PATH, movie.getPoster_path());
-                    value.put(TITLE, movie.getTitle());
-                    value.put(BACKDROP_PATH, movie.getBackdrop_path());
-                    value.put(RELEASE_DATE, movie.getRelease_date());
-                    value.put(VOTE_AVERAGE, movie.getVote_average());
-                    value.put(OVERVIEW, movie.getOverview());
-                    values[i] = value;
-                }
-                getContext().getContentResolver().bulkInsert(
-                        MovieContracts.MovieTable.CONTENT_URI, values);
-            }
+            cursor = data;
+            adapter.swapCursor(cursor);
+//            ContentValues cValues = new ContentValues();
+//            getContext().getContentResolver().bulkInsert();
         }
     }
 
@@ -144,6 +128,8 @@ public class MainFragment extends Fragment implements LoaderManager.LoaderCallba
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.d(DEBUG_TAG, "onCreate");
+
 //        updateFragment();
 
     }
@@ -159,13 +145,14 @@ public class MainFragment extends Fragment implements LoaderManager.LoaderCallba
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+        Log.d(DEBUG_TAG, "onCreateView");
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_main, container, false);
 
         movieGrid = (GridView)view.findViewById(R.id.movie_grid);
 
-        adapter = new ImageAdapter(movieList, getContext());
-
+        adapter = new MovieItemCursorAdapter(
+                getContext(), cursor, CursorAdapter.FLAG_REGISTER_CONTENT_OBSERVER);
 
         movieGrid.setAdapter(adapter);
 

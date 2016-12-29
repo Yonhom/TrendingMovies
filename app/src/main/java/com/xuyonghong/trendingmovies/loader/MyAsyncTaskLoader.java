@@ -3,6 +3,7 @@ package com.xuyonghong.trendingmovies.loader;
 import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.database.MatrixCursor;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
@@ -28,11 +29,13 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.xuyonghong.trendingmovies.provider.MovieContracts.MovieTable.MOVIE_TABLE_PROJECTION;
+
 /**
  * Created by xuyonghong on 2016/12/5.
  */
 
-public class MyAsyncTaskLoader extends AsyncTaskLoader<List> {
+public class MyAsyncTaskLoader extends AsyncTaskLoader<MatrixCursor> {
     private static final String DEBUG_TAG = MyAsyncTaskLoader.class.getSimpleName();
 
     private ConnectivityManager cManager;
@@ -52,7 +55,7 @@ public class MyAsyncTaskLoader extends AsyncTaskLoader<List> {
     }
 
     @Override
-    public List loadInBackground() {
+    public MatrixCursor loadInBackground() {
         List<Movie> movieList = new ArrayList<>();
         cManager = (ConnectivityManager) context
                 .getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -66,7 +69,7 @@ public class MyAsyncTaskLoader extends AsyncTaskLoader<List> {
                 movieList.addAll(movieJsonToArray(responseStr));
             }
 
-
+            return arrayToMatrixCursor(movieList);
 
         } else {
             // remind the user that there is internet connectivity problem
@@ -80,10 +83,29 @@ public class MyAsyncTaskLoader extends AsyncTaskLoader<List> {
                             .show();
                 }
             });
-
+            return arrayToMatrixCursor(movieList);
         }
 
-        return movieList;
+    }
+
+    private MatrixCursor arrayToMatrixCursor(List<Movie> movieList) {
+//        public static final String[] MOVIE_TABLE_PROJECTION = new String[] {
+//                _ID, POSTER_PATH, TITLE, BACKDROP_PATH, RELEASE_DATE, VOTE_AVERAGE, OVERVIEW
+//        };
+        String[] columnNames = MOVIE_TABLE_PROJECTION;
+        MatrixCursor mc = new MatrixCursor(columnNames);
+        for (Movie movie : movieList) {
+            MatrixCursor.RowBuilder rowBuilder = mc.newRow();
+            rowBuilder.add(columnNames[1], movie.getPoster_path())
+                    .add(columnNames[2], movie.getTitle())
+                    .add(columnNames[3], movie.getBackdrop_path())
+                    .add(columnNames[4], movie.getRelease_date())
+                    .add(columnNames[5], movie.getVote_average())
+                    .add(columnNames[6], movie.getOverview());
+        }
+
+        return mc;
+
     }
 
     /**
@@ -99,7 +121,7 @@ public class MyAsyncTaskLoader extends AsyncTaskLoader<List> {
      * MainFragment.onLoadFinished(Loader<List>, List)
      */
     @Override
-    public void deliverResult(List data) {
+    public void deliverResult(MatrixCursor data) {
         super.deliverResult(data);
     }
 

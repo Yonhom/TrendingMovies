@@ -25,6 +25,16 @@ public class MovieContracts {
         public static final String VOTE_AVERAGE = "vote_average";
         public static final String OVERVIEW = "overview";
 
+        // the movie table column info represented by id
+        public static final int I_ID = 0;
+        public static final int I_POSTER_PATH = 1;
+        public static final int I_TITLE = 2;
+        public static final int I_BACKDROP_PATH = 3;
+        public static final int I_RELEASE_DATE = 4;
+        public static final int I_VOTE_AVERAGE = 5;
+        public static final int I_OVERVIEW = 6;
+
+
         public static final String CREATE_MOVIE_TABLE =
                 "CREATE TABLE " + MOVIE_TABLE +
                         " (" + _ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +

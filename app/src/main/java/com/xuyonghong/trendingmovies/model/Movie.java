@@ -10,7 +10,6 @@ public class Movie implements Serializable {
     private static final String BASE_URL = "https://image.tmdb.org/t/p/w185";
 
     private String poster_path;
-
     private String title;
     private String backdrop_path;
     private String release_date;
