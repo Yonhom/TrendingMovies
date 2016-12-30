@@ -36,11 +36,13 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
 
     private static final String DEBUG_TAG = DetailFragment.class.getSimpleName();
 
+    public static final String DETAIL_FRAGMENT_TAG = DetailFragment.class.getSimpleName();
+
     private Loader loader;
 
     private static final int MOVIE_DETAIL_LOADER = 1;
 
-    int movieItemId;
+    private int movieItemId;
 
     private View detailView;
 
@@ -62,11 +64,16 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // get the selected movie id
-        movieItemId = getArguments().getInt("MOVIE_ITEM_ID", 0);
+        if (savedInstanceState == null) {
+            // get the selected movie id
+            movieItemId = getArguments().getInt("MOVIE_ITEM_ID", 0);
+            // init the detail info retriving loader
+            loader = getLoaderManager().initLoader(MOVIE_DETAIL_LOADER, null, this);
+        } else {
+            loader = getLoaderManager().restartLoader(MOVIE_DETAIL_LOADER, null, this);
+        }
 
-        // init the detail info retriving loader
-        loader = getLoaderManager().initLoader(MOVIE_DETAIL_LOADER, null, this);
+
 
         // Inflate the layout for this fragment
         detailView = inflater.inflate(R.layout.fragment_detail, container, false);
@@ -106,5 +113,9 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
     @Override
     public void onDestroy() {
         super.onDestroy();
+    }
+
+    public void setMovieItemId(int movieItemId) {
+        this.movieItemId = movieItemId;
     }
 }

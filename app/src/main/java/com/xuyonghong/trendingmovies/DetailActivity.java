@@ -2,7 +2,6 @@ package com.xuyonghong.trendingmovies;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatActivity;
 
 import com.xuyonghong.trendingmovies.fragment.DetailFragment;
@@ -14,7 +13,7 @@ public class DetailActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_detail);
 
-        Fragment detailFragment = new DetailFragment();
+        DetailFragment detailFragment = new DetailFragment();
         Intent intent = getIntent();
         int selectedMovieID = intent.getIntExtra("MOVIE_ITEM_ID", 0);
         Bundle args = new Bundle();
@@ -23,7 +22,12 @@ public class DetailActivity extends AppCompatActivity {
 
         if (savedInstanceState == null) {
             getSupportFragmentManager().beginTransaction()
-                    .add(R.id.activity_detail, detailFragment).commit();
+                    .add(R.id.activity_detail, detailFragment, DetailFragment.DETAIL_FRAGMENT_TAG).commit();
+        } else { // in this block, we sure that the activity's fragment is already existed, we get it and give it the movie id
+            DetailFragment dFregment =
+                    (DetailFragment) getSupportFragmentManager()
+                            .findFragmentByTag(DetailFragment.DETAIL_FRAGMENT_TAG);
+            dFregment.setMovieItemId(selectedMovieID);
         }
 
     }
