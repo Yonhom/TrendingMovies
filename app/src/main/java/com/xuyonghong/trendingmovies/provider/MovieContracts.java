@@ -17,7 +17,7 @@ public class MovieContracts {
         public static final Uri CONTENT_URI = Uri.parse(URL);
 
         // the movie table column info
-        public static final String _ID = "_ID";
+        public static final String _ID = "_id";
         public static final String POSTER_PATH = "poster_path";
         public static final String TITLE = "title";
         public static final String BACKDROP_PATH = "backdrop_path";

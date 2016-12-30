@@ -28,6 +28,7 @@ import com.xuyonghong.trendingmovies.adapter.MovieItemCursorAdapter;
 import com.xuyonghong.trendingmovies.loader.MyAsyncTaskLoader;
 import com.xuyonghong.trendingmovies.provider.MovieContracts;
 import com.xuyonghong.trendingmovies.settings.SettingsActivity;
+import com.xuyonghong.trendingmovies.util.MyUtils;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -98,8 +99,37 @@ public class MainFragment extends Fragment implements LoaderManager.LoaderCallba
         super.onActivityCreated(savedInstanceState);
         Log.d(DEBUG_TAG, "onActivityCreated");
 
-        // init the MyAsyncTaskLoader
-        fetchOnlineMovieListLoader = getLoaderManager().initLoader(0, null, this);
+        if (MyUtils.isAppStartForTheFirstTime(getContext())) {
+            // init the MyAsyncTaskLoader
+            fetchOnlineMovieListLoader = getLoaderManager().initLoader(0, null, this);
+        } else {
+            restoreDataFromDatabase();
+        }
+
+    }
+
+    /**
+     * every time the 'refresh' option item is clicked, call this method to
+     * retrive data from internet and display it on UI and store it in the
+     * database
+     */
+    public void reloadData() {
+        /*
+        cause this method refreshing,  it is garanteed that a previous loader with the
+        same id is already exist, so we need to call the restartLoader() method, for
+        reloading new data instead of returning back the old data
+         */
+        fetchOnlineMovieListLoader = getLoaderManager().restartLoader(0, null, this);
+    }
+
+    /**
+     * if the app is already installed and started at least once,
+     * read data from database unless the user pressed the 'refresh' option item
+     */
+    public void restoreDataFromDatabase() {
+        Cursor cursor = getContext().getContentResolver()
+                .query(MovieContracts.MovieTable.CONTENT_URI, null, null, null, null);
+        adapter.swapCursor(cursor);
     }
 
 
@@ -116,10 +146,17 @@ public class MainFragment extends Fragment implements LoaderManager.LoaderCallba
         Log.d(DEBUG_TAG, "onLoadFinished");
         if (loader.getId() == FETCH_ONLINE_MOVIE_LIST_LOADER) {
             cursor = data;
-            adapter.swapCursor(cursor);
+            adapter.swapCursor(data); // this method mess up with the cursor's pointer, moving it down, i dont know why
+
+
+            // before each insert delete old data
+            getContext().getContentResolver().delete(
+                    MovieContracts.MovieTable.CONTENT_URI, null, null);
+
 
             // insert data to database
             List<ContentValues> valueList = new ArrayList<>();
+            data.moveToPosition(-1); // make sure the cursor's pointer is always before first row
             while (data.moveToNext()) {
                 ContentValues values = new ContentValues();
                 DatabaseUtils.cursorRowToContentValues(data, values);
@@ -133,7 +170,7 @@ public class MainFragment extends Fragment implements LoaderManager.LoaderCallba
 
     @Override
     public void onLoaderReset(Loader loader) {
-
+        adapter.swapCursor(null);
     }
     /// load related methods
 
@@ -193,7 +230,7 @@ public class MainFragment extends Fragment implements LoaderManager.LoaderCallba
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_refresh:
-                fetchOnlineMovieListLoader.forceLoad();
+                reloadData();
                 break;
             case R.id.action_settings:
                 startActivity(new Intent(getActivity(), SettingsActivity.class));

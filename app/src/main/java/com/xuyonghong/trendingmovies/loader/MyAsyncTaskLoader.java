@@ -43,20 +43,35 @@ public class MyAsyncTaskLoader extends AsyncTaskLoader<MatrixCursor> {
 
     private Context context;
 
+    private List<Movie> movieList = new ArrayList<>();
+
+    private String[] columnNames = MOVIE_TABLE_PROJECTION;
+    private MatrixCursor mc = new MatrixCursor(columnNames);;
+
     public MyAsyncTaskLoader(Context context) {
         super(context);
         this.context = context;
     }
 
-    // when initLoader of LoaderManager is called, this method will be called first
+    /**
+     *     when initLoader of LoaderManager is called, this method will be called first
+     *     this method will be called each time the MainFragment is returned from
+     *     backstrack
+     */
     @Override
     protected void onStartLoading() {
-        forceLoad();
+        Log.d(DEBUG_TAG, "onStartLoading()");
+        // if the data is already exist, just deliver it to the loader callbacks
+        if (movieList.size() > 0) {
+            deliverResult(mc);
+        } else {
+            forceLoad();
+        }
     }
 
     @Override
     public MatrixCursor loadInBackground() {
-        List<Movie> movieList = new ArrayList<>();
+        Log.d(DEBUG_TAG, "loadInBackground()");
         cManager = (ConnectivityManager) context
                 .getSystemService(Context.CONNECTIVITY_SERVICE);
         activeNetworkInfo = cManager.getActiveNetworkInfo();
@@ -89,14 +104,12 @@ public class MyAsyncTaskLoader extends AsyncTaskLoader<MatrixCursor> {
     }
 
     private MatrixCursor arrayToMatrixCursor(List<Movie> movieList) {
-//        public static final String[] MOVIE_TABLE_PROJECTION = new String[] {
-//                _ID, POSTER_PATH, TITLE, BACKDROP_PATH, RELEASE_DATE, VOTE_AVERAGE, OVERVIEW
-//        };
-        String[] columnNames = MOVIE_TABLE_PROJECTION;
-        MatrixCursor mc = new MatrixCursor(columnNames);
-        for (Movie movie : movieList) {
+
+        for (int i = 0; i < movieList.size(); i++) {
             MatrixCursor.RowBuilder rowBuilder = mc.newRow();
-            rowBuilder.add(columnNames[1], movie.getPoster_path())
+            Movie movie = movieList.get(i);
+            rowBuilder.add(columnNames[0], i)
+                    .add(columnNames[1], movie.getPoster_path())
                     .add(columnNames[2], movie.getTitle())
                     .add(columnNames[3], movie.getBackdrop_path())
                     .add(columnNames[4], movie.getRelease_date())
@@ -122,6 +135,7 @@ public class MyAsyncTaskLoader extends AsyncTaskLoader<MatrixCursor> {
      */
     @Override
     public void deliverResult(MatrixCursor data) {
+        Log.d(DEBUG_TAG, "deliverResult()");
         super.deliverResult(data);
     }
 

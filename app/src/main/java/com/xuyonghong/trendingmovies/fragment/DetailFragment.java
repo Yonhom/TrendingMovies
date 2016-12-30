@@ -78,7 +78,7 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
         Uri baseUri = CONTENT_URI.buildUpon().
-                appendPath(String.valueOf(movieItemId)).build();
+                appendPath(String.valueOf(movieItemId )).build();
         return new CursorLoader(
                 getContext(), baseUri, MOVIE_TABLE_PROJECTION, null, null, null);
     }
@@ -101,5 +101,10 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
 
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
     }
 }

@@ -1,10 +1,16 @@
 package com.xuyonghong.trendingmovies;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 
 import com.xuyonghong.trendingmovies.fragment.MainFragment;
+import com.xuyonghong.trendingmovies.util.MyUtils;
+
+import static com.xuyonghong.trendingmovies.util.MyUtils.APP_STARTED_FOR_FIRST_TIME_KEY;
+import static com.xuyonghong.trendingmovies.util.MyUtils.APP_START_STATUS_PREFERENCE;
 
 
 public class MainActivity extends AppCompatActivity { // AppCompatActivity: add the action bar functionality
@@ -33,5 +39,14 @@ public class MainActivity extends AppCompatActivity { // AppCompatActivity: add 
         return super.onCreateOptionsMenu(menu);
     }
 
-
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (MyUtils.isAppStartForTheFirstTime(this)) {
+            SharedPreferences sharedPreferences =
+                    getSharedPreferences(APP_START_STATUS_PREFERENCE, Context.MODE_PRIVATE);
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.putBoolean(APP_STARTED_FOR_FIRST_TIME_KEY, false).commit();
+        }
+    }
 }

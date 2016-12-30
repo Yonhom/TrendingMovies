@@ -103,13 +103,13 @@ public class MovieContentProvider extends ContentProvider {
         long rowID = movieDb.insert(MovieContracts.MovieTable.MOVIE_TABLE, "", values);
 
         // if the record is added successfully
-        if (rowID > 0) {
+        if (rowID >= 0) {
             Uri _uri = ContentUris.withAppendedId(CONTENT_URI, rowID);
             getContext().getContentResolver().notifyChange(_uri, null);
             return _uri;
         }
 
-        throw new SQLiteException("Failed to add a record into" + uri);
+        throw new SQLiteException("Failed to add a record into " + uri);
     }
 
 

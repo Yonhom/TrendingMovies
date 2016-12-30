@@ -1,6 +1,7 @@
 package com.xuyonghong.trendingmovies.util;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.widget.ImageView;
 
@@ -77,5 +78,15 @@ public class MyUtils {
         sdf = new SimpleDateFormat("yyyy");
         return sdf.format(myDate);
 
+    }
+
+    public static final String APP_START_STATUS_PREFERENCE = "APP_START_STATUS";
+    public static final String APP_STARTED_FOR_FIRST_TIME_KEY = "APP_STARTED_FOR_FIRST_TIME";
+
+    public static boolean isAppStartForTheFirstTime(Context context) {
+        SharedPreferences app_start_status =
+                context.getSharedPreferences(
+                        APP_START_STATUS_PREFERENCE, Context.MODE_PRIVATE);
+        return app_start_status.getBoolean(APP_STARTED_FOR_FIRST_TIME_KEY, true);
     }
 }
