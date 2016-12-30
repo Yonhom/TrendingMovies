@@ -21,6 +21,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.GridView;
+import android.widget.Toast;
 
 import com.xuyonghong.trendingmovies.DetailActivity;
 import com.xuyonghong.trendingmovies.R;
@@ -129,7 +130,15 @@ public class MainFragment extends Fragment implements LoaderManager.LoaderCallba
     public void restoreDataFromDatabase() {
         Cursor cursor = getContext().getContentResolver()
                 .query(MovieContracts.MovieTable.CONTENT_URI, null, null, null, null);
-        adapter.swapCursor(cursor);
+        if (cursor == null || !cursor.moveToFirst()) { // if the cursor is null or empty
+            Toast.makeText(
+                    getContext(),
+                    "No data in local database, Please refresh!",
+                    Toast.LENGTH_SHORT).show();
+        } else {
+
+            adapter.swapCursor(cursor);
+        }
     }
 
 
