@@ -26,7 +26,7 @@ import android.widget.Toast;
 import com.xuyonghong.trendingmovies.DetailActivity;
 import com.xuyonghong.trendingmovies.R;
 import com.xuyonghong.trendingmovies.adapter.MovieItemCursorAdapter;
-import com.xuyonghong.trendingmovies.loader.MyAsyncTaskLoader;
+import com.xuyonghong.trendingmovies.loader.MovieListAsyncTaskLoader;
 import com.xuyonghong.trendingmovies.provider.MovieContracts;
 import com.xuyonghong.trendingmovies.settings.SettingsActivity;
 import com.xuyonghong.trendingmovies.util.MyUtils;
@@ -34,6 +34,7 @@ import com.xuyonghong.trendingmovies.util.MyUtils;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 /**
  * this fragment is for the movie list
@@ -53,13 +54,16 @@ public class MainFragment extends Fragment implements LoaderManager.LoaderCallba
     
     private String lastRankingOrder = "popular";
 
-    private Loader fetchOnlineMovieListLoader;
-
-    private static final int FETCH_ONLINE_MOVIE_LIST_LOADER = 0;
-
     private CursorAdapter adapter;
 
     private Cursor cursor;
+
+    /**
+     * type of movies showing in the grid: all or collected
+     * false: show all
+     * true: show collected only
+     */
+    private boolean showCollected = false;
 
     public MainFragment() {
         // Required empty public constructor
@@ -101,8 +105,8 @@ public class MainFragment extends Fragment implements LoaderManager.LoaderCallba
         Log.d(DEBUG_TAG, "onActivityCreated");
 
         if (MyUtils.isAppStartForTheFirstTime(getContext())) {
-            // init the MyAsyncTaskLoader
-            fetchOnlineMovieListLoader = getLoaderManager().initLoader(0, null, this);
+            // init the MovieListAsyncTaskLoader
+            getLoaderManager().initLoader(0, null, this);
         } else {
             restoreDataFromDatabase();
         }
@@ -120,7 +124,7 @@ public class MainFragment extends Fragment implements LoaderManager.LoaderCallba
         same id is already exist, so we need to call the restartLoader() method, for
         reloading new data instead of returning back the old data
          */
-        fetchOnlineMovieListLoader = getLoaderManager().restartLoader(0, null, this);
+        getLoaderManager().restartLoader(0, null, this);
     }
 
     /**
@@ -146,22 +150,37 @@ public class MainFragment extends Fragment implements LoaderManager.LoaderCallba
     @Override
     public Loader onCreateLoader(int id, Bundle args) {
         Log.d(DEBUG_TAG, "onCreateLoader");
+        if (MyUtils.showCollectedMovies(getContext())) {
+            //show collected
+            Set<String> collectedMovieIds = MyUtils.getCollectedMovieIds(getContext());
+            List<String> urls = new ArrayList<>();
+            if (collectedMovieIds != null && collectedMovieIds.size() > 0) {
+                for (String movieId : collectedMovieIds) {
+                    String urlStr = "https://api.themoviedb.org/3/movie/"
+                            + movieId + "?api_key=abc9d273fe2afffe7d8b56710a96ae15&language=zh";
+                    urls.add(urlStr);
+                }
+            } else {
+                Toast.makeText(getContext(), "There is no movie collected!", Toast.LENGTH_SHORT).show();
+            }
+            return new MovieListAsyncTaskLoader(getContext(), urls);
+        }
+
         // create a loader here, if there isn't a existing one with the id
-        return new MyAsyncTaskLoader(getContext());
+        return new MovieListAsyncTaskLoader(getContext());
     }
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
         Log.d(DEBUG_TAG, "onLoadFinished");
-        if (loader.getId() == FETCH_ONLINE_MOVIE_LIST_LOADER) {
-            cursor = data;
-            adapter.swapCursor(data); // this method mess up with the cursor's pointer, moving it down, i dont know why
 
+        cursor = data;
+        adapter.swapCursor(data); // this method mess up with the cursor's pointer, moving it down, i dont know why
 
+        if (!MyUtils.showCollectedMovies(getContext())) {
             // before each insert delete old data
             getContext().getContentResolver().delete(
                     MovieContracts.MovieTable.CONTENT_URI, null, null);
-
 
             // insert data to database
             List<ContentValues> valueList = new ArrayList<>();
@@ -175,6 +194,7 @@ public class MainFragment extends Fragment implements LoaderManager.LoaderCallba
                     MovieContracts.MovieTable.CONTENT_URI,
                     valueList.toArray(new ContentValues[valueList.size()]));
         }
+
     }
 
     @Override
@@ -215,12 +235,14 @@ public class MainFragment extends Fragment implements LoaderManager.LoaderCallba
 
         movieGrid.setAdapter(adapter);
 
+
         movieGrid.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(
                     AdapterView<?> parent, View view, int position, long id) {
+                List<String> movieIds = MyUtils.cursorToMovieIdArray(cursor);
                 Intent intent = new Intent(getActivity(), DetailActivity.class);
-                intent.putExtra("MOVIE_ITEM_ID", position);
+                intent.putExtra("MOVIE_ITEM_ID", movieIds.get(position));
                 startActivity(intent);
             }
         });
@@ -243,6 +265,19 @@ public class MainFragment extends Fragment implements LoaderManager.LoaderCallba
                 break;
             case R.id.action_settings:
                 startActivity(new Intent(getActivity(), SettingsActivity.class));
+                break;
+            case R.id.action_show_collect:
+                if (showCollected) {  //show all
+                    item.setTitle("显示已收藏");
+                    restoreDataFromDatabase();
+                    MyUtils.setShowAll(getContext());
+                } else { // show collected
+                    item.setTitle("显示全部");
+                    MyUtils.setShowCollected(getContext());
+                    reloadData();
+
+                }
+                showCollected = !showCollected;
                 break;
         }
         return true;

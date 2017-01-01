@@ -2,13 +2,15 @@ package com.xuyonghong.trendingmovies.fragment;
 
 
 import android.database.Cursor;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -21,6 +23,13 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 
 import static com.xuyonghong.trendingmovies.provider.MovieContracts.MovieTable.CONTENT_URI;
+import static com.xuyonghong.trendingmovies.provider.MovieContracts.MovieTable.I_MOVIE_ID;
+import static com.xuyonghong.trendingmovies.provider.MovieContracts.MovieTable.I_OVERVIEW;
+import static com.xuyonghong.trendingmovies.provider.MovieContracts.MovieTable.I_POSTER_PATH;
+import static com.xuyonghong.trendingmovies.provider.MovieContracts.MovieTable.I_RELEASE_DATE;
+import static com.xuyonghong.trendingmovies.provider.MovieContracts.MovieTable.I_TITLE;
+import static com.xuyonghong.trendingmovies.provider.MovieContracts.MovieTable.I_VOTE_AVERAGE;
+import static com.xuyonghong.trendingmovies.provider.MovieContracts.MovieTable.MOVIE_ID;
 import static com.xuyonghong.trendingmovies.provider.MovieContracts.MovieTable.MOVIE_TABLE_PROJECTION;
 
 /**
@@ -38,26 +47,17 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
 
     public static final String DETAIL_FRAGMENT_TAG = DetailFragment.class.getSimpleName();
 
-    private Loader loader;
-
     private static final int MOVIE_DETAIL_LOADER = 1;
-
-    private int movieItemId;
 
     private View detailView;
 
-    // These indices are tied to DETAIL_COLUMNS.  If DETAIL_COLUMNS changes, these
-    // must change.
-    public static final int COL_MOVIE_ID = 0;
-    public static final int COL_POSTER_PATH = 1;
-    public static final int COL_TITLE = 2;
-    public static final int COL_BACKDROP_PATH = 3;
-    public static final int COL_RELEASE_DATE = 4;
-    public static final int COL_VOTE_AVERAGE = 5;
-    public static final int COL_OVERVIEW = 6;
+    /**
+     * the unique id string for identifying a movie
+     */
+    private String movieId;
 
     public DetailFragment() {
-
+        setHasOptionsMenu(true);
     }
 
 
@@ -66,14 +66,12 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
                              Bundle savedInstanceState) {
         if (savedInstanceState == null) {
             // get the selected movie id
-            movieItemId = getArguments().getInt("MOVIE_ITEM_ID", 0);
+            movieId = getArguments().getString("MOVIE_ITEM_ID", "0");
             // init the detail info retriving loader
-            loader = getLoaderManager().initLoader(MOVIE_DETAIL_LOADER, null, this);
+            getLoaderManager().initLoader(MOVIE_DETAIL_LOADER, null, this);
         } else {
-            loader = getLoaderManager().restartLoader(MOVIE_DETAIL_LOADER, null, this);
+            getLoaderManager().restartLoader(MOVIE_DETAIL_LOADER, null, this);
         }
-
-
 
         // Inflate the layout for this fragment
         detailView = inflater.inflate(R.layout.fragment_detail, container, false);
@@ -84,23 +82,31 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        Uri baseUri = CONTENT_URI.buildUpon().
-                appendPath(String.valueOf(movieItemId )).build();
+//        Uri baseUri = CONTENT_URI.buildUpon().
+//                appendPath(String.valueOf(movieItemId)).build();
+        String selection = MOVIE_ID + "=?";
+        String[] selectionArgs = new String[]{movieId};
         return new CursorLoader(
-                getContext(), baseUri, MOVIE_TABLE_PROJECTION, null, null, null);
+                getContext(),
+                CONTENT_URI, MOVIE_TABLE_PROJECTION,
+                selection,
+                selectionArgs,
+                null);
     }
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
         if (cursor != null && cursor.moveToNext()) {
-            movieTitle.setText(cursor.getString(COL_TITLE));
+            movieTitle.setText(cursor.getString(I_TITLE));
             MyUtils.populateImageViewWithUrl(
                     getActivity(),
                     (ImageView) detailView.findViewById(R.id.movie_poster2),
-                    cursor.getString(COL_POSTER_PATH));
-            debutTime.setText(cursor.getString(COL_RELEASE_DATE));
-            movieRating.setText(cursor.getString(COL_VOTE_AVERAGE));
-            movieIntro.setText(cursor.getString(COL_OVERVIEW));
+                    cursor.getString(I_POSTER_PATH));
+            debutTime.setText(cursor.getString(I_RELEASE_DATE));
+            movieRating.setText(cursor.getString(I_VOTE_AVERAGE));
+            movieIntro.setText(cursor.getString(I_OVERVIEW));
+            movieId = cursor.getString(I_MOVIE_ID);
+
         }
     }
 
@@ -115,7 +121,45 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
         super.onDestroy();
     }
 
-    public void setMovieItemId(int movieItemId) {
-        this.movieItemId = movieItemId;
+    public void setMovieItemId(String movieItemId) {
+        this.movieId = movieItemId;
     }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        if (menu.findItem(R.id.movie_collect) == null) {
+            inflater.inflate(R.menu.menu_fragment_detail, menu);
+        }
+
+        if (MyUtils.isMovieCollected(getContext(), movieId)) {
+            menu.findItem(R.id.movie_collect).setIcon(R.mipmap.ic_favorite_black_24dp);
+        }
+    }
+
+
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.movie_collect:
+                if (MyUtils.isMovieCollected(getContext(), movieId)) {
+                    MyUtils.unCollectMovie(getContext(), movieId);
+                    item.setIcon(R.mipmap.ic_favorite_white_24dp);
+                } else {
+                    MyUtils.collectMovie(getContext(), movieId);
+                    item.setIcon(R.mipmap.ic_favorite_black_24dp);
+                }
+
+                break;
+
+            case android.R.id.home:
+                getActivity().onBackPressed();
+                break;
+
+        }
+
+        return true;
+    }
+
+
 }

@@ -16,6 +16,16 @@ public class Movie implements Serializable {
     private String vote_average;
     private String overview;
 
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    private String id;
+
     public String getPoster_path() {
         return BASE_URL + poster_path;
     }

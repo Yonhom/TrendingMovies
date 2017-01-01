@@ -24,6 +24,7 @@ public class MovieContracts {
         public static final String RELEASE_DATE = "release_date";
         public static final String VOTE_AVERAGE = "vote_average";
         public static final String OVERVIEW = "overview";
+        public static final String MOVIE_ID = "id";
 
         // the movie table column info represented by id
         public static final int I_ID = 0;
@@ -33,6 +34,7 @@ public class MovieContracts {
         public static final int I_RELEASE_DATE = 4;
         public static final int I_VOTE_AVERAGE = 5;
         public static final int I_OVERVIEW = 6;
+        public static final int I_MOVIE_ID = 7;
 
 
         public static final String CREATE_MOVIE_TABLE =
@@ -43,11 +45,12 @@ public class MovieContracts {
                         BACKDROP_PATH + " TEXT NOT NULL, " +
                         RELEASE_DATE + " TEXT NOT NULL, " +
                         VOTE_AVERAGE + " TEXT NOT NULL, " +
-                        OVERVIEW + " TEXT NOT NULL" +
+                        OVERVIEW + " TEXT NOT NULL, " +
+                        MOVIE_ID + " TEXT NOT NULL" +
                         ")";
 
         public static final String[] MOVIE_TABLE_PROJECTION = new String[] {
-            _ID, POSTER_PATH, TITLE, BACKDROP_PATH, RELEASE_DATE, VOTE_AVERAGE, OVERVIEW
+            _ID, POSTER_PATH, TITLE, BACKDROP_PATH, RELEASE_DATE, VOTE_AVERAGE, OVERVIEW, MOVIE_ID
         };
     }
 

@@ -15,9 +15,9 @@ public class DetailActivity extends AppCompatActivity {
 
         DetailFragment detailFragment = new DetailFragment();
         Intent intent = getIntent();
-        int selectedMovieID = intent.getIntExtra("MOVIE_ITEM_ID", 0);
+        String selectedMovieID = intent.getStringExtra("MOVIE_ITEM_ID");
         Bundle args = new Bundle();
-        args.putInt("MOVIE_ITEM_ID", selectedMovieID);
+        args.putString("MOVIE_ITEM_ID", selectedMovieID);
         detailFragment.setArguments(args);
 
         if (savedInstanceState == null) {

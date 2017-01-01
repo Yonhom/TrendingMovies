@@ -8,48 +8,58 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
 import android.preference.PreferenceManager;
-import android.support.annotation.Nullable;
 import android.support.v4.content.AsyncTaskLoader;
 import android.util.Log;
 import android.widget.Toast;
 
 import com.xuyonghong.trendingmovies.R;
 import com.xuyonghong.trendingmovies.model.Movie;
+import com.xuyonghong.trendingmovies.util.MyUtils;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.xuyonghong.trendingmovies.provider.MovieContracts.MovieTable.BACKDROP_PATH;
+import static com.xuyonghong.trendingmovies.provider.MovieContracts.MovieTable.MOVIE_ID;
 import static com.xuyonghong.trendingmovies.provider.MovieContracts.MovieTable.MOVIE_TABLE_PROJECTION;
+import static com.xuyonghong.trendingmovies.provider.MovieContracts.MovieTable.OVERVIEW;
+import static com.xuyonghong.trendingmovies.provider.MovieContracts.MovieTable.POSTER_PATH;
+import static com.xuyonghong.trendingmovies.provider.MovieContracts.MovieTable.RELEASE_DATE;
+import static com.xuyonghong.trendingmovies.provider.MovieContracts.MovieTable.TITLE;
+import static com.xuyonghong.trendingmovies.provider.MovieContracts.MovieTable.VOTE_AVERAGE;
+import static com.xuyonghong.trendingmovies.util.MyUtils.getResponseFromReqUrl;
 
 /**
  * Created by xuyonghong on 2016/12/5.
  */
 
-public class MyAsyncTaskLoader extends AsyncTaskLoader<MatrixCursor> {
-    private static final String DEBUG_TAG = MyAsyncTaskLoader.class.getSimpleName();
+public class MovieListAsyncTaskLoader extends AsyncTaskLoader<MatrixCursor> {
+    private static final String DEBUG_TAG = MovieListAsyncTaskLoader.class.getSimpleName();
 
     private ConnectivityManager cManager;
     private NetworkInfo activeNetworkInfo;
 
-    private Context context;
-
     private List<Movie> movieList = new ArrayList<>();
 
     private String[] columnNames = MOVIE_TABLE_PROJECTION;
-    private MatrixCursor mc = new MatrixCursor(columnNames);;
+    private MatrixCursor mc = new MatrixCursor(columnNames);
 
-    public MyAsyncTaskLoader(Context context) {
+    private List<String> collectedUrls;
+
+    private Context context;
+
+    public MovieListAsyncTaskLoader(Context context) {
         super(context);
+        this.context = context;
+    }
+
+    public MovieListAsyncTaskLoader(Context context, List<String> urls) {
+        super(context);
+        collectedUrls = urls;
         this.context = context;
     }
 
@@ -72,27 +82,41 @@ public class MyAsyncTaskLoader extends AsyncTaskLoader<MatrixCursor> {
     @Override
     public MatrixCursor loadInBackground() {
         Log.d(DEBUG_TAG, "loadInBackground()");
-        cManager = (ConnectivityManager) context
+        cManager = (ConnectivityManager) getContext()
                 .getSystemService(Context.CONNECTIVITY_SERVICE);
         activeNetworkInfo = cManager.getActiveNetworkInfo();
 
         if (activeNetworkInfo != null && activeNetworkInfo.isConnected()) {
-            // internet connected, fetch data
-            String responseStr = getResponseFromReqUrl(getRequestUrl());
+            if (MyUtils.showCollectedMovies(getContext())) {
+                if (collectedUrls != null && collectedUrls.size() > 0) {
+                    for (String colletedUrl : collectedUrls) {
+                        String response =
+                                MyUtils.getResponseFromReqUrl(getContext(), colletedUrl);
+                        Movie movie = movieJsonToMovie(response);
+                        movieList.add(movie);
 
-            if (responseStr != null) {
-                movieList.addAll(movieJsonToArray(responseStr));
+                    }
+                }
+            } else {
+                // internet connected, fetch data
+                String responseStr =
+                        getResponseFromReqUrl(getContext(), getRequestUrl());
+
+                if (responseStr != null) {
+                    movieList.addAll(movieJsonToArray(responseStr));
+                }
             }
+
 
             return arrayToMatrixCursor(movieList);
 
         } else {
             // remind the user that there is internet connectivity problem
-            ((Activity)context).runOnUiThread(new Runnable() {
+            ((Activity)getContext()).runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
                     Toast.makeText(
-                            context,
+                            getContext(),
                             "Mayday, mayday! The internet is down, now we are all in peril!!",
                             Toast.LENGTH_SHORT)
                             .show();
@@ -114,7 +138,8 @@ public class MyAsyncTaskLoader extends AsyncTaskLoader<MatrixCursor> {
                     .add(columnNames[3], movie.getBackdrop_path())
                     .add(columnNames[4], movie.getRelease_date())
                     .add(columnNames[5], movie.getVote_average())
-                    .add(columnNames[6], movie.getOverview());
+                    .add(columnNames[6], movie.getOverview())
+                    .add(columnNames[7], movie.getId());
         }
 
         return mc;
@@ -123,7 +148,7 @@ public class MyAsyncTaskLoader extends AsyncTaskLoader<MatrixCursor> {
 
     /**
      * Call Hierarchy:
-     * MyAsyncTaskLoader.deliverResult(List)
+     * MovieListAsyncTaskLoader.deliverResult(List)
      * --->
      * Loader.deliverResult(D)
      * --->
@@ -145,7 +170,9 @@ public class MyAsyncTaskLoader extends AsyncTaskLoader<MatrixCursor> {
      */
     private String getRequestUrl() {
 
-        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
+        SharedPreferences sp =
+                PreferenceManager.getDefaultSharedPreferences(getContext());
+
         String lastRankingOrder =
                 sp.getString(context.getString(R.string.movie_ranking_type_key), "popular");
 
@@ -160,75 +187,11 @@ public class MyAsyncTaskLoader extends AsyncTaskLoader<MatrixCursor> {
     }
 
     /**
-     * get response from url
-     * @param urlStr
-     * @return
-     */
-    @Nullable
-    private String getResponseFromReqUrl(String urlStr) {
-        InputStream is = null;
-        HttpURLConnection conn = null;
-        BufferedReader reader = null;
-
-        try{
-            URL url = new URL(urlStr);
-            conn = (HttpURLConnection) url.openConnection();
-            conn.setReadTimeout(10000);
-            conn.setConnectTimeout(15000);
-            conn.setRequestMethod("GET");
-            conn.setDoInput(true);  // default is true
-            conn.connect();
-
-            int responseCode = conn.getResponseCode();
-            if (responseCode != 200) {
-                Toast.makeText(context,
-                        "Response code is" + responseCode + ", not 200",
-                        Toast.LENGTH_SHORT).show();
-                return null;
-            }
-
-            is = conn.getInputStream();
-            if (is == null) {
-                return null;
-            }
-
-            reader = new BufferedReader(new InputStreamReader(is));
-            StringBuffer buffer = new StringBuffer();
-            String line;
-
-            while((line = reader.readLine()) != null) {
-                buffer.append(line + "\n");
-            }
-
-            if(buffer.length() == 0){
-                return null;
-            }
-            String responseStr = buffer.toString();
-            Log.d(DEBUG_TAG, responseStr);
-
-            return responseStr;
-        }catch(IOException e){
-            return null;
-        } finally {
-            if (conn != null) {
-                conn.disconnect();
-            }
-            if (reader != null){
-                try {
-                    reader.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-    }
-
-    /**
      * parse json response to movie array list
      * @param jsonStr
      * @return
      */
-    private List<Movie> movieJsonToArray(String jsonStr) {
+    public List<Movie> movieJsonToArray(String jsonStr) {
         ArrayList<Movie> movieArray = new ArrayList<>();
         try {
             JSONObject jsonObj = new JSONObject(jsonStr);
@@ -243,6 +206,7 @@ public class MyAsyncTaskLoader extends AsyncTaskLoader<MatrixCursor> {
                 movie.setRelease_date(jsonObject.getString("release_date"));
                 movie.setVote_average(jsonObject.getString("vote_average"));
                 movie.setOverview(jsonObject.getString("overview"));
+                movie.setId(jsonObject.getString("id"));
 
                 movieArray.add(movie);
             }
@@ -254,6 +218,22 @@ public class MyAsyncTaskLoader extends AsyncTaskLoader<MatrixCursor> {
         return movieArray;
     }
 
+    public Movie movieJsonToMovie(String jsonStr) {
+        try {
+            JSONObject jsonObj = new JSONObject(jsonStr);
+            Movie movie = new Movie();
+            movie.setBackdrop_path(jsonObj.getString(BACKDROP_PATH));
+            movie.setTitle(jsonObj.getString(TITLE));
+            movie.setPoster_path(jsonObj.getString(POSTER_PATH));
+            movie.setRelease_date(jsonObj.getString(RELEASE_DATE));
+            movie.setVote_average(jsonObj.getString(VOTE_AVERAGE));
+            movie.setOverview(jsonObj.getString(OVERVIEW));
+            movie.setId(String.valueOf(jsonObj.getInt(MOVIE_ID)));
 
-
+            return movie;
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 }

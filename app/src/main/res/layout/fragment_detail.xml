@@ -53,6 +53,17 @@
             android:layout_marginLeft="@dimen/margin_medium"
             />
 
+        <TextView
+            android:id="@+id/movie_length"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            tools:text="@string/movie_length"
+            android:layout_below="@id/movie_rating"
+            android:layout_toRightOf="@id/movie_poster2"
+            android:layout_marginTop="@dimen/margin_small"
+            android:layout_marginLeft="@dimen/margin_medium"
+            />
+
         <android.support.v4.widget.NestedScrollView
             android:layout_width="match_parent"
             android:layout_height="@dimen/movie_intro_scroll_view_height"

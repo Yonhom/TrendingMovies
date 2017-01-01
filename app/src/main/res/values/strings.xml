@@ -86,5 +86,8 @@
     <string name="movie_title_placeholder">Movie Title PlaceHolder</string>
     <string name="debut_time_placeholder">Debut Time Placeholder</string>
     <string name="movie_rating">Movie Rating</string>
+    <string name="movie_length">Movie Length</string>
     <string name="movie_intro_placeholder">Movie Intro Placeholder</string>
+    <string name="action_favorate">action_favorate</string>
+    <string name="show_collected">显示已收藏</string>
 </resources>

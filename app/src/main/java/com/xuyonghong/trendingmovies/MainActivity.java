@@ -42,11 +42,12 @@ public class MainActivity extends AppCompatActivity { // AppCompatActivity: add 
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        // find out whether the app is started for the first time
         if (MyUtils.isAppStartForTheFirstTime(this)) {
             SharedPreferences sharedPreferences =
                     getSharedPreferences(APP_START_STATUS_PREFERENCE, Context.MODE_PRIVATE);
             SharedPreferences.Editor editor = sharedPreferences.edit();
-            editor.putBoolean(APP_STARTED_FOR_FIRST_TIME_KEY, false).commit();
+            editor.putBoolean(APP_STARTED_FOR_FIRST_TIME_KEY, false).apply();
         }
     }
 }

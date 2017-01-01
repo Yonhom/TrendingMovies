@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item android:id="@+id/movie_collect"
+        android:icon="@mipmap/ic_favorite_white_24dp"
+        android:title="@string/action_favorate"
+        app:showAsAction="always"
+        />
+
+</menu>
