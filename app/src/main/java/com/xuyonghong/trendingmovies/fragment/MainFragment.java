@@ -108,7 +108,11 @@ public class MainFragment extends Fragment implements LoaderManager.LoaderCallba
             // init the MovieListAsyncTaskLoader
             getLoaderManager().initLoader(0, null, this);
         } else {
-            restoreDataFromDatabase();
+            if (MyUtils.isCollectedMoviesShowing(getContext())) {
+                reloadData(); // reload collected data from internet
+            } else {
+                restoreDataFromDatabase();
+            }
         }
 
     }
@@ -132,7 +136,7 @@ public class MainFragment extends Fragment implements LoaderManager.LoaderCallba
      * read data from database unless the user pressed the 'refresh' option item
      */
     public void restoreDataFromDatabase() {
-        Cursor cursor = getContext().getContentResolver()
+        cursor = getContext().getContentResolver()
                 .query(MovieContracts.MovieTable.CONTENT_URI, null, null, null, null);
         if (cursor == null || !cursor.moveToFirst()) { // if the cursor is null or empty
             Toast.makeText(
@@ -150,7 +154,7 @@ public class MainFragment extends Fragment implements LoaderManager.LoaderCallba
     @Override
     public Loader onCreateLoader(int id, Bundle args) {
         Log.d(DEBUG_TAG, "onCreateLoader");
-        if (MyUtils.showCollectedMovies(getContext())) {
+        if (MyUtils.isCollectedMoviesShowing(getContext())) {
             //show collected
             Set<String> collectedMovieIds = MyUtils.getCollectedMovieIds(getContext());
             List<String> urls = new ArrayList<>();
@@ -175,9 +179,9 @@ public class MainFragment extends Fragment implements LoaderManager.LoaderCallba
         Log.d(DEBUG_TAG, "onLoadFinished");
 
         cursor = data;
-        adapter.swapCursor(data); // this method mess up with the cursor's pointer, moving it down, i dont know why
+        adapter.swapCursor(data); // this method messes up with the cursor's pointer, moving it down, i dont know why
 
-        if (!MyUtils.showCollectedMovies(getContext())) {
+        if (!MyUtils.isCollectedMoviesShowing(getContext())) {
             // before each insert delete old data
             getContext().getContentResolver().delete(
                     MovieContracts.MovieTable.CONTENT_URI, null, null);
@@ -255,6 +259,12 @@ public class MainFragment extends Fragment implements LoaderManager.LoaderCallba
         if (menu.findItem(R.id.action_refresh) == null) {
             inflater.inflate(R.menu.menu_fragment_main, menu);
         }
+        // make the collection menu option being consistent with the movie showing status
+        if (MyUtils.isCollectedMoviesShowing(getContext())) {
+            menu.findItem(R.id.action_show_collect).setTitle("显示全部");
+        } else {
+            menu.findItem(R.id.action_show_collect).setTitle("显示已收藏");
+        }
     }
 
     @Override
@@ -281,5 +291,9 @@ public class MainFragment extends Fragment implements LoaderManager.LoaderCallba
                 break;
         }
         return true;
+    }
+
+    public void showCollectedMovies() {
+
     }
 }

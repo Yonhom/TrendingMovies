@@ -228,7 +228,7 @@ public class MyUtils {
 
     public static final String SHOW_COLLECTED_KEY = "show_collected";
 
-    public static boolean showCollectedMovies(Context context) {
+    public static boolean isCollectedMoviesShowing(Context context) {
         SharedPreferences sharedPreferences =
                 context.getSharedPreferences(
                         MOVIE_COLLECT_PREF, Context.MODE_PRIVATE);

@@ -87,14 +87,13 @@ public class MovieListAsyncTaskLoader extends AsyncTaskLoader<MatrixCursor> {
         activeNetworkInfo = cManager.getActiveNetworkInfo();
 
         if (activeNetworkInfo != null && activeNetworkInfo.isConnected()) {
-            if (MyUtils.showCollectedMovies(getContext())) {
+            if (MyUtils.isCollectedMoviesShowing(getContext())) {
                 if (collectedUrls != null && collectedUrls.size() > 0) {
                     for (String colletedUrl : collectedUrls) {
                         String response =
                                 MyUtils.getResponseFromReqUrl(getContext(), colletedUrl);
                         Movie movie = movieJsonToMovie(response);
                         movieList.add(movie);
-
                     }
                 }
             } else {
