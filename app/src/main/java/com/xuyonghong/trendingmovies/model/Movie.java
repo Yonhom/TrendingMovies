@@ -15,6 +15,17 @@ public class Movie implements Serializable {
     private String release_date;
     private String vote_average;
     private String overview;
+    private int movieRuntime;
+    private String id;
+
+    public int getMovieRuntime() {
+        return movieRuntime;
+    }
+
+    public void setMovieRuntime(int movieRuntime) {
+        this.movieRuntime = movieRuntime;
+    }
+
 
     public String getId() {
         return id;
@@ -24,7 +35,6 @@ public class Movie implements Serializable {
         this.id = id;
     }
 
-    private String id;
 
     public String getPoster_path() {
         return BASE_URL + poster_path;

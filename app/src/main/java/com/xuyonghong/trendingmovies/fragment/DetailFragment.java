@@ -54,6 +54,7 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
     @BindView(R.id.debut_time) TextView debutTime;
     @BindView(R.id.movie_rating) TextView movieRating;
     @BindView(R.id.movie_intro) TextView movieIntro;
+    @BindView(R.id.movie_runtime) TextView movieRuntime;
 
     private static final String DEBUG_TAG = DetailFragment.class.getSimpleName();
 
@@ -125,6 +126,7 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
             new DownloadAsyncTask(getContext()).execute(urlStr);
 
         }
+
     }
 
 
@@ -178,6 +180,9 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
         return true;
     }
 
+    /**
+     * this download task is for data not in the database
+     */
     private class DownloadAsyncTask extends AsyncTask<String, Integer, Movie> {
 
         private Context context;
@@ -208,6 +213,7 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
             movieRating.setText(movie.getVote_average());
             movieIntro.setText(movie.getOverview());
             movieId = movie.getId();
+            movieRuntime.setText(String.valueOf(movie.getMovieRuntime()) + "分钟");
         }
 
         public Movie movieJsonToMovie(String jsonStr) {
@@ -221,6 +227,7 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
                 movie.setVote_average(jsonObj.getString(VOTE_AVERAGE));
                 movie.setOverview(jsonObj.getString(OVERVIEW));
                 movie.setId(String.valueOf(jsonObj.getInt(MOVIE_ID)));
+                movie.setMovieRuntime(jsonObj.getInt("runtime"));
 
                 return movie;
             } catch (JSONException e) {
